@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spotify - Web Player</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo-container">
+                <i class="fab fa-spotify"></i>
+                <span>Spotify</span>
+            </div>
+            
+            <nav class="main-nav">
+                <ul>
+                    <li class="active"><a href="#"><i class="fas fa-home"></i> Home</a></li>
+                    <li><a href="#"><i class="fas fa-search"></i> Search</a></li>
+                    <li><a href="#"><i class="fas fa-book-open"></i> Your Library</a></li>
+                </ul>
+            </nav>
+
+            <nav class="playlist-nav">
+                <ul>
+                    <li><a href="#"><i class="fas fa-plus-square"></i> Create Playlist</a></li>
+                    <li><a href="#"><i class="fas fa-heart"></i> Liked Songs</a></li>
+                </ul>
+            </nav>
+
+            <hr class="divider">
+
+            <div class="playlists-list">
+                <!-- Playlists will go here -->
+                <p>Tamil Hits</p>
+                <p>Favorites</p>
+                <p>Relaxing</p>
+                <p>Workout Mix</p>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="topbar">
+                <div class="nav-arrows">
+                    <button class="arrow-btn"><i class="fas fa-chevron-left"></i></button>
+                    <button class="arrow-btn"><i class="fas fa-chevron-right"></i></button>
+                </div>
+                <div class="user-controls">
+                    <button class="btn-upgrade">Upgrade</button>
+                    <button class="btn-profile"><i class="far fa-user"></i></button>
+                </div>
+            </header>
+
+            <!-- Playlists / Songs Area -->
+            <section class="content-section">
+                <div class="greeting-container">
+                    <h1 id="greeting">Good Evening</h1>
+                </div>
+
+                <div class="section-title">
+                    <h2>Made For You</h2>
+                    <a href="#" class="see-all">Show all</a>
+                </div>
+
+                <div class="cards-container" id="song-list">
+                    <!-- Song cards will be injected here via JavaScript -->
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Playbar -->
+    <footer class="playbar">
+        <!-- Left: Song Info -->
+        <div class="now-playing">
+            <img src="" alt="Album Cover" class="cover-art" id="current-cover" style="display: none;">
+            <div class="track-info">
+                <h4 class="track-title" id="current-title">Select a track</h4>
+                <p class="track-artist" id="current-artist">-</p>
+            </div>
+            <button class="like-btn"><i class="far fa-heart"></i></button>
+        </div>
+
+        <!-- Center: Controls -->
+        <div class="player-controls">
+            <div class="buttons">
+                <button class="control-btn" id="shuffle-btn" title="Shuffle"><i class="fas fa-random"></i></button>
+                <button class="control-btn" id="prev-btn" title="Previous"><i class="fas fa-step-backward"></i></button>
+                <button class="play-pause-btn" id="play-pause-btn" title="Play"><i class="fas fa-play"></i></button>
+                <button class="control-btn" id="next-btn" title="Next"><i class="fas fa-step-forward"></i></button>
+                <button class="control-btn" id="repeat-btn" title="Repeat"><i class="fas fa-redo-alt"></i></button>
+            </div>
+            <div class="playback-bar">
+                <span class="time-current" id="current-time">0:00</span>
+                <div class="progress-bar-container" id="progress-container">
+                    <div class="progress-bar" id="progress-bar"></div>
+                </div>
+                <span class="time-total" id="total-time">0:00</span>
+            </div>
+        </div>
+
+        <!-- Right: Volume/Extras -->
+        <div class="extra-controls">
+            <button class="extra-btn"><i class="fas fa-microphone"></i></button>
+            <button class="extra-btn"><i class="fas fa-list-ul"></i></button>
+            <button class="extra-btn"><i class="fas fa-desktop"></i></button>
+            <div class="volume-control">
+                <button class="extra-btn" id="mute-btn"><i class="fas fa-volume-up"></i></button>
+                <div class="volume-bar-container" id="volume-container">
+                    <div class="volume-bar" id="volume-bar"></div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
