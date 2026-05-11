@@ -35,23 +35,54 @@ document.addEventListener('DOMContentLoaded', () => {
 
     renderTable();
 
-    form.addEventListener('submit', (e) => {
+    form.addEventListener('submit', async (e) => {
         e.preventDefault();
 
-        const url = document.getElementById('songUrl').value.trim();
+        const submitBtn = form.querySelector('.btn-submit');
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Adding...';
+
+        const rawUrl = document.getElementById('songUrl').value.trim();
         let title = document.getElementById('songTitle').value.trim();
         const artist = document.getElementById('songArtist').value.trim() || 'Tamil Hits';
         let cover = document.getElementById('songCover').value.trim();
 
-        if (!url) return;
+        if (!rawUrl) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Add Song';
+            return;
+        }
 
-        // Auto-extract title if blank
-        if (!title) {
-            let filename = url.split('/').pop().split('?')[0].replace('.mp3', '');
-            // Basic cleanup
-            filename = filename.replace(/[-_]/g, ' ');
-            filename = filename.replace(/\b\w/g, l => l.toUpperCase());
-            title = filename || 'Unknown Title';
+        let finalUrl = rawUrl;
+        const isYoutube = rawUrl.includes('youtube.com') || rawUrl.includes('youtu.be');
+
+        if (isYoutube) {
+            try {
+                // Fetch info from our backend
+                const response = await fetch(`http://localhost:3000/api/info?url=${encodeURIComponent(rawUrl)}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    if (!title) title = data.title;
+                    if (!cover) cover = data.cover;
+                } else {
+                    console.error('Failed to fetch YouTube info');
+                    if(!title) title = 'YouTube Audio';
+                }
+                // Set the URL to our backend stream endpoint
+                finalUrl = `http://localhost:3000/api/stream?url=${encodeURIComponent(rawUrl)}`;
+            } catch (error) {
+                console.error('Error contacting backend:', error);
+                if(!title) title = 'YouTube Audio';
+                finalUrl = `http://localhost:3000/api/stream?url=${encodeURIComponent(rawUrl)}`;
+            }
+        } else {
+            // Auto-extract title if blank for regular URLs
+            if (!title) {
+                let filename = rawUrl.split('/').pop().split('?')[0].replace('.mp3', '');
+                filename = filename.replace(/[-_]/g, ' ');
+                filename = filename.replace(/\b\w/g, l => l.toUpperCase());
+                title = filename || 'Unknown Title';
+            }
         }
 
         if (!cover) {
@@ -59,21 +90,21 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const newSong = {
-            id: 'custom-' + Date.now(), // Generate a unique ID for custom songs
+            id: 'custom-' + Date.now(),
             title: title,
             artist: artist,
-            url: url,
+            url: finalUrl,
             cover: cover
         };
 
         customSongs.push(newSong);
         localStorage.setItem('customSongs', JSON.stringify(customSongs));
         
-        // Reset form
         form.reset();
-        
-        // Update table
         renderTable();
+        
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Add Song';
         
         alert('Song added successfully! Go to the home page to play it.');
     });
