@@ -64,32 +64,21 @@ const rawSongs = [
 
 // Clean up song names from URLs
 let songs = rawSongs.map((url, index) => {
-    // Extract filename without extension
     let filename = url.split('/').pop().replace('.mp3', '');
-    
-    // Remove unwanted suffixes and hash-like strings
     filename = filename.replace(/-MassTamilan\.(dev|fm|io|com|so|org)/gi, '')
                        .replace(/_Masstamilan\.In/gi, '')
                        .replace(/_-Masstamilan\.in/gi, '')
-                       .replace(/_[a-z0-9]{6}$/, ''); // Removes the trailing random chars like _fpddnz
-
-    // Replace hyphens and underscores with spaces
+                       .replace(/_[a-z0-9]{6}$/, '');
     filename = filename.replace(/[-_]/g, ' ');
-
-    // Basic Title Case formatting (optional, but looks nicer)
     filename = filename.replace(/\b\w/g, l => l.toUpperCase());
-    
-    // Handle specific weird namings from the list
-    filename = filename.replace(/1 Mjcsqu/g, '') // Cleanup from Villain Yaaru
-                       .trim();
+    filename = filename.replace(/1 Mjcsqu/g, '').trim();
                        
-    // Use the generated cover for all, or allow some variance if desired
     const coverUrl = "default_cover.png";
     
     return {
         id: index,
         title: filename,
-        artist: "Tamil Hits", // Generic artist since we don't have metadata
+        artist: "Tamil Hits",
         url: url,
         cover: coverUrl
     };
@@ -98,7 +87,7 @@ let songs = rawSongs.map((url, index) => {
 // Load custom songs from local storage and merge at the beginning
 const customSongs = JSON.parse(localStorage.getItem('customSongs') || '[]');
 songs = [...customSongs, ...songs].map((song, index) => {
-    return { ...song, id: index }; // Ensure IDs match index
+    return { ...song, id: index }; // Ensure IDs match index sequentially
 });
 
 // --- State Variables ---
@@ -106,10 +95,12 @@ let currentSongIndex = 0;
 let isPlaying = false;
 let isShuffle = false;
 let isRepeat = false;
+let currentView = 'home'; // 'home', 'search', 'liked'
+let likedSongs = JSON.parse(localStorage.getItem('likedSongs') || '[]');
 
 // Audio Object
 const audio = new Audio();
-audio.volume = 1.0; // Default volume 100%
+audio.volume = 1.0; 
 
 // --- DOM Elements ---
 const songListContainer = document.getElementById('song-list');
@@ -126,57 +117,87 @@ const volumeBar = document.getElementById('volume-bar');
 const volumeContainer = document.getElementById('volume-container');
 const muteBtn = document.getElementById('mute-btn');
 
-// Playbar Info
 const currentCover = document.getElementById('current-cover');
 const currentTitle = document.getElementById('current-title');
 const currentArtist = document.getElementById('current-artist');
+const likeBtn = document.getElementById('like-btn');
 
-// Greeting
 const greetingEl = document.getElementById('greeting');
-const hour = new Date().getHours();
-if (hour < 12) greetingEl.textContent = 'Good Morning';
-else if (hour < 18) greetingEl.textContent = 'Good Afternoon';
-else greetingEl.textContent = 'Good Evening';
+const toastContainer = document.getElementById('toast-container');
+
+// Navigation Elements
+const navHome = document.getElementById('nav-home');
+const navSearch = document.getElementById('nav-search');
+const navLibrary = document.getElementById('nav-library');
+const navLikedSongs = document.getElementById('nav-liked-songs');
+const searchContainer = document.getElementById('search-container');
+const searchInput = document.getElementById('search-input');
+const dummyPlaylists = document.getElementById('dummy-playlists');
+const btnUpgrade = document.getElementById('btn-upgrade');
+const btnProfile = document.getElementById('btn-profile');
+const navCreatePlaylist = document.getElementById('nav-create-playlist');
+
+// Set Greeting
+function updateGreeting(text) {
+    greetingEl.textContent = text;
+}
+function setTimeGreeting() {
+    const hour = new Date().getHours();
+    if (hour < 12) updateGreeting('Good Morning');
+    else if (hour < 18) updateGreeting('Good Afternoon');
+    else updateGreeting('Good Evening');
+}
+
 
 // --- Initialization ---
 function init() {
-    renderSongs();
-    loadSong(songs[currentSongIndex]);
+    setTimeGreeting();
+    renderSongs(songs);
+    if(songs.length > 0) loadSong(songs[0], false); // Load first song without playing
 }
 
 // --- Render Song Cards ---
-function renderSongs() {
+function renderSongs(songsToRender) {
     songListContainer.innerHTML = '';
-    songs.forEach((song, index) => {
+    
+    if (songsToRender.length === 0) {
+        songListContainer.innerHTML = '<p style="grid-column: 1/-1; color: var(--text-secondary); text-align: center; padding: 40px;">No songs found.</p>';
+        return;
+    }
+
+    songsToRender.forEach((song) => {
         const card = document.createElement('div');
         card.classList.add('card');
-        card.dataset.index = index;
+        card.dataset.index = song.id;
         
+        // Check if playing
+        if (currentSongIndex === song.id && isPlaying) {
+            card.classList.add('playing');
+        }
+
         card.innerHTML = `
             <img src="${song.cover}" alt="Cover" class="card-img">
-            <button class="card-play-btn"><i class="fas fa-play"></i></button>
-            <h3 class="card-title">${song.title}</h3>
+            <button class="card-play-btn"><i class="fas ${currentSongIndex === song.id && isPlaying ? 'fa-pause' : 'fa-play'}"></i></button>
+            <h3 class="card-title" title="${song.title}">${song.title}</h3>
             <p class="card-desc">${song.artist}</p>
         `;
 
         // Click on the play button inside card
         const playBtn = card.querySelector('.card-play-btn');
         playBtn.addEventListener('click', (e) => {
-            e.stopPropagation(); // Prevent card click event
-            if (currentSongIndex === index && isPlaying) {
+            e.stopPropagation(); 
+            if (currentSongIndex === song.id && isPlaying) {
                 pauseSong();
             } else {
-                currentSongIndex = index;
-                loadSong(songs[currentSongIndex]);
-                playSong();
+                currentSongIndex = song.id;
+                loadSong(songs[currentSongIndex], true);
             }
         });
 
         // Click on the card itself
         card.addEventListener('click', () => {
-            currentSongIndex = index;
-            loadSong(songs[currentSongIndex]);
-            playSong();
+            currentSongIndex = song.id;
+            loadSong(songs[currentSongIndex], true);
         });
 
         songListContainer.appendChild(card);
@@ -184,30 +205,37 @@ function renderSongs() {
 }
 
 // --- Player Logic ---
-
-function loadSong(song) {
-    audio.src = song.url;
+function loadSong(song, autoPlay = true) {
+    if (!song) return;
+    
+    // Only set src if it changed to avoid restarting on pause/play toggles incorrectly
+    if(!audio.src.includes(encodeURI(song.url))) {
+        audio.src = song.url;
+    }
+    
     currentTitle.textContent = song.title;
     currentArtist.textContent = song.artist;
     currentCover.src = song.cover;
     currentCover.style.display = 'block';
     
-    // Update card styling
-    document.querySelectorAll('.card').forEach(c => c.classList.remove('playing'));
+    updateLikeButtonState();
+    
+    // Update all card stylings
+    document.querySelectorAll('.card').forEach(c => {
+        c.classList.remove('playing');
+        const icon = c.querySelector('.card-play-btn i');
+        if(icon) {
+            icon.classList.remove('fa-pause');
+            icon.classList.add('fa-play');
+        }
+    });
+    
     const activeCard = document.querySelector(`.card[data-index="${song.id}"]`);
     if(activeCard) {
         activeCard.classList.add('playing');
-        // Update play icon on all cards
-        document.querySelectorAll('.card-play-btn i').forEach(i => {
-            i.classList.remove('fa-pause');
-            i.classList.add('fa-play');
-        });
-        if(isPlaying) {
-             const activeIcon = activeCard.querySelector('.card-play-btn i');
-             activeIcon.classList.remove('fa-play');
-             activeIcon.classList.add('fa-pause');
-        }
     }
+
+    if(autoPlay) playSong();
 }
 
 function playSong() {
@@ -215,7 +243,6 @@ function playSong() {
     audio.play();
     playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
     
-    // Update active card icon
     const activeCardIcon = document.querySelector(`.card[data-index="${currentSongIndex}"] .card-play-btn i`);
     if(activeCardIcon) {
         activeCardIcon.classList.remove('fa-play');
@@ -228,7 +255,6 @@ function pauseSong() {
     audio.pause();
     playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
     
-    // Update active card icon
     const activeCardIcon = document.querySelector(`.card[data-index="${currentSongIndex}"] .card-play-btn i`);
     if(activeCardIcon) {
         activeCardIcon.classList.remove('fa-pause');
@@ -237,18 +263,18 @@ function pauseSong() {
 }
 
 function prevSong() {
-    currentSongIndex--;
-    if (currentSongIndex < 0) {
-        currentSongIndex = songs.length - 1;
+    let newIndex = currentSongIndex - 1;
+    if (newIndex < 0) {
+        newIndex = songs.length - 1;
     }
+    currentSongIndex = newIndex;
     loadSong(songs[currentSongIndex]);
-    if (isPlaying) playSong();
 }
 
 function nextSong() {
     if (isShuffle) {
         let newIndex = currentSongIndex;
-        while(newIndex === currentSongIndex) {
+        while(newIndex === currentSongIndex && songs.length > 1) {
             newIndex = Math.floor(Math.random() * songs.length);
         }
         currentSongIndex = newIndex;
@@ -259,52 +285,156 @@ function nextSong() {
         }
     }
     loadSong(songs[currentSongIndex]);
-    if (isPlaying) playSong();
 }
+
+
+// --- Search & Filtering ---
+searchInput.addEventListener('input', (e) => {
+    const term = e.target.value.toLowerCase();
+    const filteredSongs = songs.filter(song => 
+        song.title.toLowerCase().includes(term) || 
+        song.artist.toLowerCase().includes(term)
+    );
+    renderSongs(filteredSongs);
+});
+
+// --- Liked Songs Logic ---
+function updateLikeButtonState() {
+    if (likedSongs.includes(currentSongIndex)) {
+        likeBtn.classList.add('active');
+    } else {
+        likeBtn.classList.remove('active');
+    }
+}
+
+likeBtn.addEventListener('click', () => {
+    if (likedSongs.includes(currentSongIndex)) {
+        // Unlike
+        likedSongs = likedSongs.filter(id => id !== currentSongIndex);
+        likeBtn.classList.remove('active');
+        showToast("Removed from Liked Songs");
+    } else {
+        // Like
+        likedSongs.push(currentSongIndex);
+        likeBtn.classList.add('active');
+        showToast("Added to Liked Songs");
+    }
+    localStorage.setItem('likedSongs', JSON.stringify(likedSongs));
+    
+    // If currently in Liked Songs view, re-render
+    if (currentView === 'liked') {
+        const liked = songs.filter(s => likedSongs.includes(s.id));
+        renderSongs(liked);
+    }
+});
+
+
+// --- Navigation Logic ---
+function clearActiveNav() {
+    document.querySelectorAll('.main-nav li, .playlist-nav li').forEach(el => el.classList.remove('active'));
+}
+
+navHome.addEventListener('click', (e) => {
+    e.preventDefault();
+    clearActiveNav();
+    navHome.classList.add('active');
+    currentView = 'home';
+    searchContainer.style.display = 'none';
+    searchInput.value = '';
+    setTimeGreeting();
+    renderSongs(songs);
+});
+
+navSearch.addEventListener('click', (e) => {
+    e.preventDefault();
+    clearActiveNav();
+    navSearch.classList.add('active');
+    currentView = 'search';
+    searchContainer.style.display = 'flex';
+    updateGreeting('Search');
+    searchInput.focus();
+    renderSongs(songs);
+});
+
+navLikedSongs.addEventListener('click', (e) => {
+    e.preventDefault();
+    clearActiveNav();
+    navLikedSongs.classList.add('active');
+    currentView = 'liked';
+    searchContainer.style.display = 'none';
+    updateGreeting('Liked Songs');
+    const liked = songs.filter(s => likedSongs.includes(s.id));
+    renderSongs(liked);
+});
+
+// Dummy navigation alerts
+navLibrary.addEventListener('click', (e) => {
+    e.preventDefault();
+    showToast("Your Library feature is coming soon!");
+});
+
+navCreatePlaylist.addEventListener('click', (e) => {
+    e.preventDefault();
+    showToast("Create Playlist feature is coming soon!");
+});
+
+dummyPlaylists.addEventListener('click', (e) => {
+    if (e.target.tagName === 'P') {
+        showToast(`Playlist "${e.target.textContent}" loaded! (Demo)`);
+        // Just render all songs shuffled for demo
+        const shuffled = [...songs].sort(() => Math.random() - 0.5);
+        updateGreeting(e.target.textContent);
+        renderSongs(shuffled);
+    }
+});
+
+btnUpgrade.addEventListener('click', () => {
+    showToast("Premium upgrade modal opening...");
+});
+
+btnProfile.addEventListener('click', () => {
+    showToast("Opening profile settings...");
+});
+
+document.getElementById('btn-back').addEventListener('click', () => showToast("Browser Back functionality"));
+document.getElementById('btn-forward').addEventListener('click', () => showToast("Browser Forward functionality"));
+
 
 // --- Event Listeners ---
 
-// Play/Pause Button
 playPauseBtn.addEventListener('click', () => {
     if (isPlaying) pauseSong();
     else playSong();
 });
 
-// Prev/Next Buttons
 prevBtn.addEventListener('click', prevSong);
 nextBtn.addEventListener('click', nextSong);
 
-// Shuffle
 shuffleBtn.addEventListener('click', () => {
     isShuffle = !isShuffle;
     shuffleBtn.classList.toggle('active');
+    showToast(isShuffle ? "Shuffle On" : "Shuffle Off");
 });
 
-// Repeat
 repeatBtn.addEventListener('click', () => {
     isRepeat = !isRepeat;
     repeatBtn.classList.toggle('active');
+    showToast(isRepeat ? "Repeat On" : "Repeat Off");
 });
 
-// Audio Time Update (Progress Bar)
 audio.addEventListener('timeupdate', () => {
     const { currentTime, duration } = audio;
     if (isNaN(duration)) return;
 
-    // Update Progress Bar width
     const progressPercent = (currentTime / duration) * 100;
     progressBar.style.width = `${progressPercent}%`;
-
-    // Update Time Text
     currentTimeEl.textContent = formatTime(currentTime);
 });
 
-// Set Total Time when audio metadata loads
 audio.addEventListener('loadedmetadata', () => {
     totalTimeEl.textContent = formatTime(audio.duration);
 });
 
-// Handle End of Song
 audio.addEventListener('ended', () => {
     if (isRepeat) {
         audio.currentTime = 0;
@@ -314,28 +444,21 @@ audio.addEventListener('ended', () => {
     }
 });
 
-// Click on Progress Bar to Seek
 progressContainer.addEventListener('click', (e) => {
     const width = progressContainer.clientWidth;
     const clickX = e.offsetX;
     const duration = audio.duration;
-    
     if(isNaN(duration)) return;
-
     audio.currentTime = (clickX / width) * duration;
 });
 
-// Volume Control
 volumeContainer.addEventListener('click', (e) => {
     const width = volumeContainer.clientWidth;
     const clickX = e.offsetX;
-    const volumePercent = clickX / width;
-    
-    setVolume(volumePercent);
+    setVolume(clickX / width);
 });
 
 function setVolume(percent) {
-    // Clamp between 0 and 1
     const finalVolume = Math.max(0, Math.min(1, percent));
     audio.volume = finalVolume;
     volumeBar.style.width = `${finalVolume * 100}%`;
@@ -349,7 +472,6 @@ function setVolume(percent) {
     }
 }
 
-// Mute Toggle
 let lastVolume = 1;
 muteBtn.addEventListener('click', () => {
     if (audio.volume > 0) {
@@ -360,7 +482,23 @@ muteBtn.addEventListener('click', () => {
     }
 });
 
-// --- Utility Functions ---
+// Toast functionality
+function showToast(message) {
+    const toast = document.createElement('div');
+    toast.classList.add('toast');
+    toast.textContent = message;
+    
+    toastContainer.appendChild(toast);
+    
+    // Trigger animation
+    setTimeout(() => toast.classList.add('show'), 10);
+    
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
+
 function formatTime(seconds) {
     const min = Math.floor(seconds / 60);
     const sec = Math.floor(seconds % 60);

@@ -20,22 +20,22 @@
             
             <nav class="main-nav">
                 <ul>
-                    <li class="active"><a href="#"><i class="fas fa-home"></i> Home</a></li>
-                    <li><a href="#"><i class="fas fa-search"></i> Search</a></li>
-                    <li><a href="#"><i class="fas fa-book-open"></i> Your Library</a></li>
+                    <li class="active" id="nav-home"><a href="#"><i class="fas fa-home"></i> Home</a></li>
+                    <li id="nav-search"><a href="#"><i class="fas fa-search"></i> Search</a></li>
+                    <li id="nav-library"><a href="#"><i class="fas fa-book-open"></i> Your Library</a></li>
                 </ul>
             </nav>
 
             <nav class="playlist-nav">
                 <ul>
-                    <li><a href="#"><i class="fas fa-plus-square"></i> Create Playlist</a></li>
-                    <li><a href="#"><i class="fas fa-heart"></i> Liked Songs</a></li>
+                    <li id="nav-create-playlist"><a href="#"><i class="fas fa-plus-square"></i> Create Playlist</a></li>
+                    <li id="nav-liked-songs"><a href="#"><i class="fas fa-heart"></i> Liked Songs</a></li>
                 </ul>
             </nav>
 
             <hr class="divider">
 
-            <div class="playlists-list">
+            <div class="playlists-list" id="dummy-playlists">
                 <!-- Playlists will go here -->
                 <p>Tamil Hits</p>
                 <p>Favorites</p>
@@ -49,13 +49,18 @@
             <!-- Header -->
             <header class="topbar">
                 <div class="nav-arrows">
-                    <button class="arrow-btn"><i class="fas fa-chevron-left"></i></button>
-                    <button class="arrow-btn"><i class="fas fa-chevron-right"></i></button>
+                    <button class="arrow-btn" id="btn-back"><i class="fas fa-chevron-left"></i></button>
+                    <button class="arrow-btn" id="btn-forward"><i class="fas fa-chevron-right"></i></button>
+                    
+                    <div class="search-container" id="search-container" style="display: none;">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" id="search-input" placeholder="What do you want to listen to?">
+                    </div>
                 </div>
                 <div class="user-controls">
                     <a href="admin.html" class="btn-upgrade" style="border: none; background-color: rgba(0,0,0,0.7); text-transform: none;">Admin</a>
-                    <button class="btn-upgrade">Upgrade</button>
-                    <button class="btn-profile"><i class="far fa-user"></i></button>
+                    <button class="btn-upgrade" id="btn-upgrade">Upgrade</button>
+                    <button class="btn-profile" id="btn-profile"><i class="far fa-user"></i></button>
                 </div>
             </header>
 
@@ -86,7 +91,7 @@
                 <h4 class="track-title" id="current-title">Select a track</h4>
                 <p class="track-artist" id="current-artist">-</p>
             </div>
-            <button class="like-btn"><i class="far fa-heart"></i></button>
+            <button class="like-btn" id="like-btn"><i class="far fa-heart"></i></button>
         </div>
 
         <!-- Center: Controls -->
@@ -120,6 +125,9 @@
             </div>
         </div>
     </footer>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="toast-container"></div>
 
     <script src="script.js"></script>
 </body>
