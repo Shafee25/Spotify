@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spotify Admin Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo-container">
+                <i class="fab fa-spotify"></i>
+                <span>Spotify Admin</span>
+            </div>
+            
+            <nav class="main-nav">
+                <ul>
+                    <li><a href="index.html"><i class="fas fa-home"></i> Back to Home</a></li>
+                    <li class="active"><a href="admin.html"><i class="fas fa-cog"></i> Dashboard</a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="topbar">
+                <div class="nav-arrows">
+                    <a href="index.html" class="arrow-btn"><i class="fas fa-chevron-left"></i></a>
+                </div>
+                <div class="user-controls">
+                    <button class="btn-profile"><i class="fas fa-user-shield"></i></button>
+                </div>
+            </header>
+
+            <section class="content-section">
+                <div class="greeting-container">
+                    <h1>Add New Song</h1>
+                </div>
+
+                <div class="admin-panel">
+                    <form id="add-song-form" class="admin-form">
+                        <div class="form-group">
+                            <label for="songUrl">Cloudinary MP3 URL *</label>
+                            <input type="url" id="songUrl" placeholder="https://res.cloudinary.com/..." required>
+                        </div>
+                        <div class="form-group">
+                            <label for="songTitle">Song Title (Optional)</label>
+                            <input type="text" id="songTitle" placeholder="Leave blank to auto-extract from URL">
+                        </div>
+                        <div class="form-group">
+                            <label for="songArtist">Artist Name</label>
+                            <input type="text" id="songArtist" value="Tamil Hits">
+                        </div>
+                        <div class="form-group">
+                            <label for="songCover">Cover Art URL (Optional)</label>
+                            <input type="url" id="songCover" placeholder="https://... (defaults to abstract cover)">
+                        </div>
+                        <button type="submit" class="btn-submit">Add Song</button>
+                    </form>
+                </div>
+
+                <div class="section-title" style="margin-top: 40px;">
+                    <h2>Custom Added Songs</h2>
+                </div>
+
+                <div class="custom-songs-list">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Artist</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="custom-songs-body">
+                            <!-- Custom songs populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="admin.js"></script>
+</body>
+</html>

@@ -63,7 +63,7 @@ const rawSongs = [
 ];
 
 // Clean up song names from URLs
-const songs = rawSongs.map((url, index) => {
+let songs = rawSongs.map((url, index) => {
     // Extract filename without extension
     let filename = url.split('/').pop().replace('.mp3', '');
     
@@ -93,6 +93,12 @@ const songs = rawSongs.map((url, index) => {
         url: url,
         cover: coverUrl
     };
+});
+
+// Load custom songs from local storage and merge at the beginning
+const customSongs = JSON.parse(localStorage.getItem('customSongs') || '[]');
+songs = [...customSongs, ...songs].map((song, index) => {
+    return { ...song, id: index }; // Ensure IDs match index
 });
 
 // --- State Variables ---
